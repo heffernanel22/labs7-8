@@ -1,0 +1,144 @@
+---
+title: "Chapter 16 Lab"
+author: "I 'State Your Name'" #Put your name here, but don't change the other lines in this 'YAML' section of the document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: github_document
+---
+
+You can read more about [R Markdown](http://rmarkdown.rstudio.com) Notebooks. 
+
+Run this chunk to install and/or load rmarkdown (Remember, you can  run this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter* or by pressing the green arrow in the upper right of the chunk.)
+
+```{r}
+#install.packages("rmarkdown")
+library("rmarkdown")
+
+#install.packages("robotstxt")
+pacman::p_load(rvest, robotstxt, dplyr, purrr)
+
+```
+
+*After each question, run the chunk to check your code.*
+
+# 1.	When scraping using rvest, you will "always" start with the read_html() function. Use that function to read the HTML code for www.rstudio.com/resources/cheatsheets/ and store it in a variable called `my_html`
+```{r}
+
+my_html <- read_html("https://rstudio.com/resources/cheatsheets/")
+```
+
+
+# 2. Putting your CSS selectors in a variable is just a clean way to organize your code. Think of this as the pattern you want to use to "cut out" the HTML that you obtained using the read_html() function. Create a variable called `my_css` that stores the CSS selectors that identify the parts of the page you want to scrape.
+```{r}
+my_css <- "p .btn-primary"
+
+
+```
+
+
+# 3. The `html_nodes()` function is "always" the second function you will use. Use `html_nodes` to apply the `my_css` pattern template to the `my_html` "fabric" you want to cut. Save the result in a variable called `my_nodes`.
+```{r}
+my_nodes <-html_nodes(my_html,my_css)
+```
+
+# This next line of code allows you to take a peek at one of the nodes you created. Just run it and see what I mean.
+```{r}
+my_nodes[[1]]
+```
+
+#After you have your "nodes" the next step is to extract exactly the data you want out of each of those nodes. Here, there are two common paths you can take. One path is to use the html_text() function, which we will talk about later. The second path is to use the html_attr() to home in on one of the attributes of the html elements you scraped. This is what we will use now. 
+
+#If you look at your nodes, you'll see that they are all HTML "a" elements that have two attributes. One of those attributes is the "href" attribute. We remember when we learned about HTML that the "href" attrbute of the "a" element in HTML is what we use to assign the value of the URL we want the browser to load when a user clicks on it. 
+
+# 4. Use the html_attr() function to exract all the values associated with all the "href" elements in our nodes. Save it in a variable called `my_urls`
+
+```{r}
+my_urls <- html_nodes(my_html, my_css) %>%  html_attr('href') 
+```
+
+
+#Now we have a long list of characters. The list has 53 elements, so we know we're on the right track. And we can peek at the first one using this next line:
+```{r}
+my_urls[1]
+```
+
+#More often than not, though, we want the actual visible text on the page and not information stored in the HTML attributes. It's not interesting here, but maybe we wanted the text of all the buttons on the page. In this case, it's always "Download" so that's not particularly interesting. But instead of using the html_attr() we need to use html_text(). It's the exact same code we used earlier, but just changing the last function because we are changing our request from information stored inside the HTML tag to information that is BETWEEN the HTML tags.
+
+# 5. Use the `html_text()` function to extract all the text that is within the <a> elements. Save the result in a variable called `my_nodes_text`
+```{r}
+my_nodes_text <- html_nodes(my_html, my_css) %>%  html_text()
+```
+
+#And we can see an example what we get
+```{r}
+my_nodes_text[1]
+```
+
+
+#6. Use the `map_chr()` function (From Chapter 7)  to apply the `basename()` function to all of the URLs in your `my_urls` variable. Save the result in a new variable called `my_filenames`.
+```{r}
+my_filenames <-  map_chr(my_urls, basename) 
+
+
+```
+
+#The `walk()` function -- you can read more about it in Chapter 15 -- is similar to map. The only difference between map functions and walk functions are that map functions return a value while walk just, well, walks through a loop of tasks without stopping to create values along the way. Use the similar `walk2()` function to download all of the PDFs on the page we've been playing with.
+
+# 7. Do the same thing as you did in Exercise 6, but save the answer as a numeric value called `days_passed2`.
+```{r}
+
+walk2(my_urls, my_filenames, download.file) 
+
+#This question seems like it belongs on a different lab? I'm writing the next code I would expect based on your explanation of `walk()` and the textbook
+```
+
+# DONE!
+
+# Let's look at another example. This one is on a very simple HTML table.
+
+# In chapter 4, we saw how the `import()` function from the `rio` package could actually do a pretty good job guessing what you want if you point it at an HTML page like this: 
+```{r}
+rsi_description <- rio::import("https://www.ncdc.noaa.gov/snow-and-ice/rsi/", format = "html")
+```
+
+# And we also saw how you could use the `htmltab` package to specify certain HTML tables on a page with multiple HTML tables. It does this by using the function's "which" argument
+```{r}
+install.packages("htmltab")
+library("htmltab")
+#citytable <- rio::import("https://en.wikipedia.org/wiki/List_of_municipalities_in_North_Carolina", format = "html") #Whoops! Not what we want.
+citytable<- htmltab("https://en.wikipedia.org/wiki/List_of_municipalities_in_North_Carolina", which = 2)
+```
+
+
+# 8. But we can also use rvest to extract data from HTML tables. Use read_html and html_nodes to pull the table of cities from https://en.wikipedia.org/wiki/List_of_municipalities_in_North_Carolina ... HINT: Use SelectorGadget to get the CSS selector you want. BONUS HINT: I'ts ".wikitable" 
+```{r}
+citytable_rvest <- read_html("https://en.wikipedia.org/wiki/List_of_municipalities_in_North_Carolina") %>% 
+  html_nodes('.wikitable')
+```
+
+
+# Then we can use the html_table() function from rvest to easily pull out data from the table without using html_text() or html_attr(). We can also tell it to use the first row of the HTML table as column labels.
+```{r}
+citytable_rvest_list <- read_html("https://en.wikipedia.org/wiki/List_of_municipalities_in_North_Carolina") %>% 
+  html_nodes('.wikitable') %>%
+  html_table(head=1)
+```
+ 
+# But it's still a list, so we need to convert it to a dataframe:
+```{r}
+#it appears mine is already a dataframe, but I'll run the code I'd expect to run if it was not.
+
+citytable_rvest_list <- as.data.frame(citytable_rvest_list)
+```
+
+
+
+
+#Run, Knit and Submit
+When you've finished, use the "Preview" pulldown menu at the top of this pane to select "Knit to HTML". This will save an HTML file to this project's directory. 
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+After you've created the HTML file of your answers, you can Stage, Commit and then push your .Rmd and .html files back to GitHub where I will grade them.
+

@@ -1,0 +1,153 @@
+---
+title: "Chapter 10 Lab"
+author: "I 'State Your Name'" #Put your name here, but don't change the other lines in this 'YAML' section of the document
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: github_document
+---
+
+WHEN READING CHAPTER 10, STOP AT THE END OF 10.6.
+
+YOU DO NOT NEED TO READ SECTION 10.7 OR 10.8.
+
+
+You can read more about [R Markdown](http://rmarkdown.rstudio.com) Notebooks. 
+
+Run this chunk to install and/or load rmarkdown (Remember, you can  run this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter* or by pressing the green arrow in the upper right of the chunk.)
+
+```{r}
+#install.packages("rmarkdown")
+library("rmarkdown")
+
+pacman::p_load(lubridate, dplyr, Hmisc,testthat)
+
+```
+
+
+*After each question, run the chunk to check your code.*
+
+# 1.	Write a function called "printToday" that prints "Today is" and the current date. Then run it on a separate line.
+```{r}
+printToday <-function(){
+  my_text <- paste0("Today is ",Sys.Date())
+  print(my_text)
+}
+
+printToday()
+```
+
+
+# 2. Write a function called "printFuture" that prints "Today plus", followed by x number of days, followed by "days is", followed by the system data in x days. Then run that function on a separate line.
+```{r}
+printFuture <-function(x){my_text <-paste0("Today plus ",x," days is ", Sys.Date()+x)
+print(my_text)
+}
+
+printFuture(7)
+```
+
+
+# 3. Write a function called "printFuture2" for which the default value of x is tomorrow's date.
+```{r}
+printFuture2 <-function(x =1){
+  my_text <- paste0("Today plus ", x, " days is ", Sys.Date() + x )
+}
+
+
+```
+
+
+# 4. Write a function called "get_first_of_last_month that, well, returns the first date of last month.
+```{r}
+get_first_of_last_month <- function(mydate = Sys.Date()) {
+  mydate <- mydate - months(1)
+  mydate <- cut(mydate, "month")
+  return(mydate)
+}
+
+get_first_of_last_month()
+```
+
+
+# 5. Use the `seq()` function to return a list of the first 7 days in August 2020.
+```{r}
+seq.Date(as.Date("2020-08-01"),length.out = 7,by="day")
+```
+
+
+# 6. Write a function to get the last day of last month.
+```{r}
+get_last_of_last_month <- function(mydate = Sys.Date()) {
+  mydate <- mydate - months(1)
+  mydate <- cut(mydate, "month")
+  seq.Date(as.Date(mydate),length.out = 30,by = "day")
+}
+x
+
+```
+
+
+# 7. Write a function called "get_last_Monday" that returns seven days before today's date if today is a Monday, eight days before today's date if today is a Tuesday and the warning message "You are running this script on a day that wasn't Monday or Tuesday." if today is not a Monday or a Tuesday. Then run that function on a separate line.
+```{r}
+get_last_Monday <-function(today = Sys.Date()){
+today <- Sys.Date() 
+if(weekdays(today) == "Monday") { 
+  lastMonday <- today - 7  
+} else if(weekdays(today) == "Tuesday") { 
+    lastMonday <- today - 8  
+} else { 
+lastMonday <- warning("You are running this script on a day that isn't  Monday or Tuesday. Results will not be accurate.  Please calculate the date for last Monday manually.") } 
+}
+
+ get_last_Monday()
+```
+
+
+# 8. Now write a function called "get_last_Monday2" that always prints the Monday before the most recent Monday.
+```{r}
+I really could not figure this one out. 
+```
+
+
+# 8. Create a function that uses the numeric weekday values to return the date for "Monday of last week," accounting for possibilities for all seven weekdays -- without explicitly writing out each case.
+```{r}
+get_last_Monday <- function(the_day = Sys.Date()){ 
+  today <- weekdays(the_day) 
+  my_result <- dplyr::case_when(  
+    today == "Monday" ~ the_day - 7, 
+    today == "Tuesday" ~ the_day - 8, 
+    today == "Wednesday" ~ the_day - 9,
+    today == "Thursday" ~ the_day - 10, 
+    today == "Friday" ~ the_day - 11, 
+    today == "Saturday" ~ the_day - 12,  
+    today == "Sunday" ~ the_day - 13  
+    )  
+  return(as.character(my_result)) 
+}
+
+get_last_Monday()
+```
+
+
+# 9. Use R's ifelse() function to write a function called "IsItOdd" that tests whether any number in a vector of numbers is odd or even.
+```{r}
+IsItOdd <- function(thenumber) {  
+  result <- ifelse(thenumber %% 2 == 1, "Odd", "Not odd")  return(result)  
+  } 
+
+
+```
+
+
+You can stop at the end of section 10.6. But if you would like to show me that you did some work on sections 10.7 or 10.8, I can give you two extra credit Lab points.
+
+
+
+# Run, Knit and Submit
+When you've finished, use the "Preview" pulldown menu at the top of this pane to select "Knit to HTML". This will save an HTML file to this project's directory. 
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
+After you've created the HTML file of your answers, you can Stage, Commit and then push your .Rmd and .html files back to GitHub where I will grade them.
+
